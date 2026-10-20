@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Control de gastos 2026 v1.3</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="theme-color" content="#1f3864">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mis Gastos">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f6fb;--card:#fff;--tx:#1b2433;--mu:#667085;--bd:#dfe3ec;--navy:#1f3864;--ok:#2e7d32;--bad:#c62828;--blue:#1565c0;--hl:#fff6d6}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161f;--card:#1b2230;--tx:#e8ecf4;--mu:#9aa5b8;--bd:#2c3547;--navy:#7aa2e8;--ok:#66bb6a;--bad:#ef6a6a;--blue:#64a8f0;--hl:#3a3418}}
+:root[data-theme="dark"]{--bg:#12161f;--card:#1b2230;--tx:#e8ecf4;--mu:#9aa5b8;--bd:#2c3547;--navy:#7aa2e8;--ok:#66bb6a;--bad:#ef6a6a;--blue:#64a8f0;--hl:#3a3418}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px Arial,Helvetica,sans-serif}
+.w{max-width:960px;margin:0 auto;padding:14px}
+h1{margin:0;font-size:24px;color:var(--navy);text-align:center}
+.sub{text-align:center;color:var(--mu);margin:2px 0 12px;font-weight:bold}
+#ban{padding:12px;border-radius:10px;text-align:center;font-weight:bold;margin-bottom:12px;background:var(--card);border:1px solid var(--bd)}
+#ban.a{background:#f8cbad;color:#7a1c1c}#ban.w2{background:#ffe699;color:#5c4400}#ban.n{background:#bdd7ee;color:#0d3a63}#ban.o{background:#c6e0b4;color:#1d4a1f}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.k{flex:1 1 140px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px;text-align:center}
+.k small{display:block;color:var(--mu);font-weight:bold;font-size:11px}.k b{font-size:20px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:12px}
+h2{font-size:15px;margin:0 0 8px;color:var(--navy)}
+label{font-size:12px;color:var(--mu);display:block}
+input,select,button{font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);max-width:100%}
+button{cursor:pointer;background:var(--navy);color:#fff;border:0;font-weight:bold}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button{color:#12161f}}:root[data-theme="dark"] button{color:#12161f}
+button.s{background:transparent;color:var(--bad);padding:2px 8px;font-size:18px}
+.f{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}.f>div{flex:1 1 130px}.f input,.f select{width:100%}
+.t{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--navy);color:#fff;padding:6px;text-align:center}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) th{color:#12161f}}:root[data-theme="dark"] th{color:#12161f}
+td{padding:6px;border-bottom:1px solid var(--bd);text-align:right;white-space:nowrap}td:first-child,td.l{text-align:left}
+tr.h td{background:var(--hl);font-weight:bold}.p{color:var(--ok)}.n2{color:var(--bad)}
+.seg{display:flex;gap:6px}.seg label{display:flex;gap:4px;align-items:center;color:var(--tx);font-size:14px}
+#lock{display:none;position:fixed;inset:0;z-index:99;background:var(--bg);align-items:center;justify-content:center;padding:20px}#lock.on{display:flex}
+</style></head><body><div class="w">
+<h1>CONTROL DE GASTOS 2026</h1>
+<div class="sub" style="margin-bottom:0">Versión 1.3 · funciona con y sin internet · <span id="est"></span></div>
+<div class="sub" id="sub"></div>
+<div id="ban"></div>
+<div class="c f">
+ <div><label>Mes a ver</label><select id="mes"></select></div>
+ <div><label>Saldo inicial del año</label><input id="ini" type="number" inputmode="decimal" value="0"></div>
+ <div style="flex:0 0 auto"><button id="nt" type="button">Activar avisos</button></div>
+ <div style="flex:0 0 auto"><button id="of" type="button" hidden>Guardar para usar sin internet</button></div>
+ <div style="flex:0 0 auto"><button id="ex" type="button" hidden>Exportar a Excel</button></div>
+ <div style="flex:0 0 auto"><button id="sb" type="button">🔒 Seguridad</button></div>
+</div>
+<div class="c" id="sg" hidden></div>
+<div class="row">
+ <div class="k"><small>INGRESOS DEL MES</small><b id="ki" class="p"></b></div>
+ <div class="k"><small>GASTOS DEL MES</small><b id="kg" class="n2"></b></div>
+ <div class="k"><small>SALDO A FAVOR DEL MES</small><b id="ks"></b></div>
+ <div class="k"><small>SALDO ACUMULADO</small><b id="ka"></b></div>
+</div>
+<div class="c"><h2>Registrar movimiento</h2>
+ <div class="f">
+  <div><label>Tipo</label><div class="seg"><label><input type="radio" name="t" value="g" checked>Gasto</label><label><input type="radio" name="t" value="i">Ingreso</label></div></div>
+  <div><label>Fecha</label><input id="fe" type="date" min="2026-01-01" max="2026-12-31"></div>
+  <div><label>Categoría</label><select id="ca"></select></div>
+  <div><label>Descripción</label><input id="de" type="text" placeholder="Ej: mercado"></div>
+  <div><label>Monto ($)</label><input id="mo" type="number" min="0" inputmode="decimal"></div>
+  <div style="flex:0 0 auto"><button id="ad" type="button">Agregar</button></div>
+ </div>
+</div>
+<div class="c"><h2>Movimientos del mes</h2><div class="t"><table id="lm"></table></div></div>
+<div class="c"><h2>Resumen anual (mes seleccionado resaltado)</h2><div class="t"><table id="an"></table></div></div>
+<div class="c"><h2>Ingresos vs gastos por mes</h2><svg id="ch" viewBox="0 0 600 190" width="100%" role="img" aria-label="Gráfica de ingresos y gastos por mes"></svg></div>
+<div class="c"><h2>Gastos por categoría (mes seleccionado)</h2><div class="t"><table id="cg"></table></div></div>
+<p class="sub" style="font-weight:normal;font-size:12px">Versión 1.3 · Tus datos se guardan en este dispositivo (navegador), con o sin internet. Una vez abierta con internet, la app queda guardada y funciona también sin conexión. Puedes instalarla desde el menú del navegador («Instalar aplicación» o «Agregar a pantalla de inicio»). Funciona en computador, tablet y celular.</p>
+</div>
+<div id="lock"><div class="c" style="max-width:340px;width:100%;text-align:center"><h2 id="lt"></h2><div id="lb"></div><p id="lmsg" style="color:var(--bad);min-height:1.2em;margin:6px 0"></p></div></div>
+<script>
+const SRC="<!DOCTYPE html>\n"+document.documentElement.outerHTML;
+const MES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const CI=["Salario","Ventas / Negocio","Trabajos independientes","Otros ingresos"];
+const CG=["Vivienda","Servicios públicos","Alimentación","Transporte","Salud","Educación","Entretenimiento","Deudas / Tarjetas","Ahorro","Otros gastos"];
+const PRES={"Vivienda":1200000,"Servicios públicos":300000,"Alimentación":800000,"Transporte":250000,"Salud":150000,"Educación":200000,"Entretenimiento":150000,"Deudas / Tarjetas":300000,"Ahorro":300000,"Otros gastos":150000}; // valores de ejemplo
+const $=i=>document.getElementById(i);
+const $$=n=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(n);
+let S={mov:[],ini:0,sel:'auto',visto:null};
+try{const r=localStorage.getItem('cg2026');if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+function save(){try{localStorage.setItem('cg2026',JSON.stringify(S))}catch(e){}}
+const hoy=new Date();const vistoPrev=S.visto;
+function mesAuto(){const y=hoy.getFullYear();return y===2026?hoy.getMonth():(y>2026?11:0)}
+function cur(){return S.sel==='auto'?mesAuto():+S.sel}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function el(t,tx,c){const e=document.createElement(t);if(tx!==undefined)e.textContent=tx;if(c)e.className=c;return e}
+function row(tb,cells,cls){const tr=el('tr');if(cls)tr.className=cls;cells.forEach((v,i)=>{const td=el('td',v.t!==undefined?v.t:v);if(v.c)td.className=v.c;if(v.l)td.classList.add('l');tr.appendChild(td)});tb.appendChild(tr);return tr}
+function head(tb,hs){const tr=el('tr');hs.forEach(h=>tr.appendChild(el('th',h)));tb.appendChild(tr)}
+function stats(){const a=MES.map(()=>({i:0,g:0}));S.mov.forEach(m=>{const d=new Date(m.f+'T00:00:00');if(d.getFullYear()===2026)a[d.getMonth()][m.t]+=m.m});return a}
+function setCats(){const t=document.querySelector('input[name=t]:checked').value;const s=$('ca');s.textContent='';(t==='g'?CG:CI).forEach(c=>{const o=el('option',c);o.value=c;s.appendChild(o)})}
+function render(){
+ const a=stats(),m=cur();let ac=+S.ini||0;const acu=a.map(x=>ac+=x.i-x.g);
+ const sal=a[m].i-a[m].g;
+ $('sub').textContent='Mes en pantalla: '+MES[m].toUpperCase()+' 2026';
+ $('ki').textContent=$$(a[m].i);$('kg').textContent=$$(a[m].g);
+ $('ks').textContent=$$(sal);$('ks').className=sal<0?'n2':'p';
+ $('ka').textContent=$$(acu[m]);$('ka').className=acu[m]<0?'n2':'';
+ // categorías
+ const gm=S.mov.filter(x=>x.t==='g'&&new Date(x.f+'T00:00:00').getMonth()===m&&x.f.startsWith('2026'));
+ const cg=$('cg');cg.textContent='';head(cg,['Categoría','Presupuesto','Gastado','Disponible','% usado','Estado']);let exc=0;
+ CG.forEach(c=>{const g=gm.filter(x=>x.c===c).reduce((s,x)=>s+x.m,0),p=PRES[c],u=p?g/p:0;
+  const e=u>1?'Excedido':u>=.8?'Cerca del límite':'Dentro del presupuesto';if(u>1)exc++;
+  row(cg,[{t:c,l:1},$$(p),$$(g),$$(p-g),Math.round(u*100)+'%',{t:e,c:u>1?'n2':u>=.8?'':'p'}])});
+ // banner
+ const b=$('ban');let cl='o',tx='Todo en orden: tienes saldo a favor este mes';
+ const nuevo=vistoPrev!==null&&vistoPrev!==(hoy.getFullYear()+'-'+hoy.getMonth());
+ if(sal<0){cl='a';tx='ALERTA: este mes tus gastos superan tus ingresos por '+$$(-sal)}
+ else if(exc>0){cl='w2';tx='AVISO: '+exc+' categoría(s) superaron su presupuesto este mes'}
+ else if(S.sel==='auto'&&(nuevo||(hoy.getFullYear()===2026&&hoy.getDate()<=3))){cl='n';tx='NUEVO MES: hoy comenzó '+MES[mesAuto()].toUpperCase()+'. El resumen ya cambió solo. ¡Empieza a registrar!'}
+ else if(!a[m].i&&!a[m].g){cl='';tx='Aún no hay movimientos registrados este mes'}
+ b.className=cl;b.id='ban';b.textContent=tx;
+ // anual
+ const an=$('an');an.textContent='';head(an,['Mes','Ingresos','Gastos','Saldo del mes','Saldo acumulado','Estado']);
+ a.forEach((x,i)=>{const s=x.i-x.g;row(an,[{t:MES[i],l:1},$$(x.i),$$(x.g),{t:$$(s),c:s<0?'n2':''},$$(acu[i]),x.i||x.g?{t:s>=0?'Saldo a favor':'Déficit',c:s>=0?'p':'n2'}:'—'],i===m?'h':'')});
+ const ti=a.reduce((s,x)=>s+x.i,0),tg=a.reduce((s,x)=>s+x.g,0);
+ row(an,[{t:'Total año',l:1},$$(ti),$$(tg),$$(ti-tg),$$(acu[11]),''],'h');
+ // lista
+ const lm=$('lm');lm.textContent='';head(lm,['Fecha','Tipo','Categoría','Descripción','Monto','']);
+ S.mov.filter(x=>x.f.startsWith('2026')&&new Date(x.f+'T00:00:00').getMonth()===m).sort((p,q)=>q.f.localeCompare(p.f)).forEach(x=>{
+  const tr=row(lm,[x.f.split('-').reverse().join('/'),{t:x.t==='i'?'Ingreso':'Gasto',c:x.t==='i'?'p':'n2'},{t:x.c,l:1},{t:x.d,l:1},$$(x.m),''] );
+  const bt=el('button','×','s');bt.type='button';bt.setAttribute('aria-label','Eliminar');bt.onclick=()=>{S.mov=S.mov.filter(y=>y.id!==x.id);save();render()};tr.lastChild.appendChild(bt)});
+ if(lm.rows.length===1)row(lm,[{t:'Sin movimientos en este mes',l:1},'','','','','']);
+ // gráfica
+ const sv=$('ch');sv.textContent='';const mx=Math.max(1,...a.map(x=>Math.max(x.i,x.g)));const NS='http://www.w3.org/2000/svg';
+ const mk=(t,at,tx)=>{const e=document.createElementNS(NS,t);for(const k in at)e.setAttribute(k,at[k]);if(tx)e.textContent=tx;sv.appendChild(e);return e};
+ a.forEach((x,i)=>{const X=10+i*48,hi=x.i/mx*140,hg=x.g/mx*140;
+  mk('rect',{x:X,y:150-hi,width:18,height:hi,fill:'#2e7d32'});mk('rect',{x:X+19,y:150-hg,width:18,height:hg,fill:'#c62828'});
+  mk('text',{x:X+19,y:168,'text-anchor':'middle','font-size':10,fill:'currentColor'},MES[i].slice(0,3))});
+ mk('rect',{x:10,y:178,width:10,height:8,fill:'#2e7d32'});mk('text',{x:24,y:186,'font-size':10,fill:'currentColor'},'Ingresos');
+ mk('rect',{x:90,y:178,width:10,height:8,fill:'#c62828'});mk('text',{x:104,y:186,'font-size':10,fill:'currentColor'},'Gastos');
+}
+function exportar(dl){
+ const enc=new TextEncoder(),esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+ const T=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;T[n]=c>>>0}
+ const crc=u=>{let c=0xFFFFFFFF;for(const b of u)c=T[(c^b)&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
+ function zip(fs){const parts=[],cd=[];let off=0;
+  fs.forEach(f=>{const nm=enc.encode(f.n),d=enc.encode(f.d),cr=crc(d);
+   const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x800,true);h.setUint16(10,0,true);h.setUint16(12,33,true);h.setUint32(14,cr,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,nm.length,true);
+   parts.push(new Uint8Array(h.buffer),nm,d);
+   const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x800,true);c.setUint16(14,33,true);c.setUint32(16,cr,true);c.setUint32(20,d.length,true);c.setUint32(24,d.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+   cd.push(new Uint8Array(c.buffer),nm);off+=30+nm.length+d.length});
+  const cs=cd.reduce((s,x)=>s+x.length,0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,fs.length,true);e.setUint16(10,fs.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cd,new Uint8Array(e.buffer)],{type:'application/zip'})}
+ const L=i=>String.fromCharCode(65+i);
+ function cell(v,r,c){const ref=L(c)+r;
+  if(v==null)return'';
+  if(v.f!==undefined){const st=v.st?` s="${v.st}"`:'';return typeof v.v==='string'?`<c r="${ref}"${st} t="str"><f>${esc(v.f)}</f><v>${esc(v.v)}</v></c>`:`<c r="${ref}"${st}><f>${esc(v.f)}</f><v>${v.v}</v></c>`}
+  if(typeof v==='object'){const st=v.st?` s="${v.st}"`:'';return typeof v.v==='string'?`<c r="${ref}"${st} t="inlineStr"><is><t>${esc(v.v)}</t></is></c>`:`<c r="${ref}"${st}><v>${v.v}</v></c>`}
+  return typeof v==='string'?`<c r="${ref}" t="inlineStr"><is><t>${esc(v)}</t></is></c>`:`<c r="${ref}"><v>${v}</v></c>`}
+ function sheet(rows,w){return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>'+w.map((x,i)=>`<col min="${i+1}" max="${i+1}" width="${x}" customWidth="1"/>`).join('')+'</cols><sheetData>'+rows.map((r,i)=>`<row r="${i+1}">`+r.map((v,j)=>cell(v,i+1,j)).join('')+'</row>').join('')+'</sheetData></worksheet>'}
+ const H=a=>a.map(x=>({v:x,st:3}));
+ const ser=f=>{const[y,m,d]=f.split('-').map(Number);return Math.round((Date.UTC(y,m-1,d)-Date.UTC(1899,11,30))/864e5)};
+ const reg=t=>[H(['Fecha','Categoría','Descripción','Monto'])].concat(S.mov.filter(x=>x.t===t).sort((a,b)=>a.f.localeCompare(b.f)).map(x=>[{v:ser(x.f),st:1},x.c,x.d||'',{v:x.m,st:2}]));
+ const a=stats(),rs=[H(['Mes','Ingresos','Gastos','Saldo a favor del mes','Saldo acumulado','Estado'])];let ac=+S.ini||0;
+ const rng=(sh,n)=>`SUMIFS(${sh}!$D:$D,${sh}!$A:$A,">="&DATE(2026,${n},1),${sh}!$A:$A,"<"&DATE(2026,${n}+1,1))`;
+ a.forEach((x,i)=>{const r=i+2,s=x.i-x.g;ac+=s;rs.push([MES[i],{f:rng('Ingresos',i+1),v:x.i,st:2},{f:rng('Gastos',i+1),v:x.g,st:2},{f:`B${r}-C${r}`,v:s,st:2},{f:i?`E${r-1}+D${r}`:`$B$16+D${r}`,v:ac,st:2},{f:`IF(AND(B${r}=0,C${r}=0),"—",IF(D${r}>=0,"Saldo a favor","Déficit"))`,v:x.i||x.g?(s>=0?'Saldo a favor':'Déficit'):'—'}])});
+ const ti=a.reduce((s,x)=>s+x.i,0),tg=a.reduce((s,x)=>s+x.g,0);
+ rs.push([{v:'Total año',st:4},{f:'SUM(B2:B13)',v:ti,st:2},{f:'SUM(C2:C13)',v:tg,st:2},{f:'SUM(D2:D13)',v:ti-tg,st:2},{f:'E13',v:ac,st:2}]);rs.push([]);
+ rs.push(['Saldo inicial del año (editable)',{v:+S.ini||0,st:2}]);
+ const X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',N='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"',R='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+ const files=[
+ {n:'[Content_Types].xml',d:X+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+[1,2,3].map(i=>`<Override PartName="/xl/worksheets/sheet${i}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>'},
+ {n:'_rels/.rels',d:X+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+ {n:'xl/workbook.xml',d:X+`<workbook ${N} xmlns:r="${R}"><sheets><sheet name="Resumen" sheetId="1" r:id="rId1"/><sheet name="Ingresos" sheetId="2" r:id="rId2"/><sheet name="Gastos" sheetId="3" r:id="rId3"/></sheets><calcPr fullCalcOnLoad="1"/></workbook>`},
+ {n:'xl/_rels/workbook.xml.rels',d:X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+[1,2,3].map(i=>`<Relationship Id="rId${i}" Type="${R}/worksheet" Target="worksheets/sheet${i}.xml"/>`).join('')+`<Relationship Id="rId4" Type="${R}/styles" Target="styles.xml"/></Relationships>`},
+ {n:'xl/styles.xml',d:X+`<styleSheet ${N}><numFmts count="1"><numFmt numFmtId="164" formatCode="&quot;$&quot; #,##0"/></numFmts><fonts count="3"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font><font><b/><sz val="10"/><name val="Arial"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1F3864"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="5"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center"/></xf><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs></styleSheet>`},
+ {n:'xl/worksheets/sheet1.xml',d:sheet(rs,[30,16,16,22,18,16])},
+ {n:'xl/worksheets/sheet2.xml',d:sheet(reg('i'),[14,26,40,16])},
+ {n:'xl/worksheets/sheet3.xml',d:sheet(reg('g'),[14,26,40,16])}];
+ return dl.save({filename:'Control de gastos 2026.xlsx',data:zip(files)});
+}
+
+// ---- Seguridad: PIN y huella ----
+let LK=null,TR={n:0,until:0},bioOK=false;
+try{LK=JSON.parse(localStorage.getItem('cg2026lock')||'null');TR=JSON.parse(localStorage.getItem('cg2026try')||'{"n":0,"until":0}')}catch(e){}
+function saveLK(){try{LK?localStorage.setItem('cg2026lock',JSON.stringify(LK)):localStorage.removeItem('cg2026lock')}catch(e){}}
+function saveTR(){try{localStorage.setItem('cg2026try',JSON.stringify(TR))}catch(e){}}
+const hexs=u=>[...new Uint8Array(u)].map(b=>b.toString(16).padStart(2,'0')).join('');
+async function H(pin,salt){const e=new TextEncoder();
+ try{const k=await crypto.subtle.importKey('raw',e.encode(pin),'PBKDF2',false,['deriveBits']);return hexs(await crypto.subtle.deriveBits({name:'PBKDF2',salt:e.encode(salt),iterations:150000,hash:'SHA-256'},k,256))}
+ catch(x){let h=5381;const s=salt+':'+pin;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return 'w'+h}}
+function rnd(){return hexs(crypto.getRandomValues(new Uint8Array(16)))}
+function overlay(title,msg){const b=$('lb');b.textContent='';$('lt').textContent=title;$('lmsg').textContent=msg||'';$('lock').classList.add('on');return b}
+function ask({title,len,cancel,bio,forgot,msg}){return new Promise(res=>{
+ const b=overlay(title,msg),i=el('input');i.type='password';i.inputMode='numeric';i.maxLength=len;i.autocomplete='off';
+ i.style.cssText='font-size:26px;letter-spacing:10px;text-align:center;width:100%';i.setAttribute('aria-label','PIN');
+ const done=v=>{$('lock').classList.remove('on');res(v)};
+ i.oninput=()=>{i.value=i.value.replace(/\D/g,'');if(i.value.length===len)done(i.value)};
+ b.appendChild(i);const r=el('div');r.style.cssText='display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px';
+ const add=(t,v)=>{const x=el('button',t);x.type='button';x.onclick=()=>done(v);r.appendChild(x)};
+ if(cancel)add('Cancelar',null);if(bio)add('Usar huella','BIO');if(forgot)add('Olvidé mi PIN','FORGOT');
+ b.appendChild(r);setTimeout(()=>i.focus(),50)})}
+function askLen(){return new Promise(res=>{const b=overlay('¿PIN de cuántos dígitos?','');
+ const r=el('div');r.style.cssText='display:flex;gap:8px;justify-content:center;flex-wrap:wrap';
+ [['4 dígitos',4],['6 dígitos',6],['Cancelar',0]].forEach(([t,v])=>{const x=el('button',t);x.type='button';x.onclick=()=>{$('lock').classList.remove('on');res(v)};r.appendChild(x)});b.appendChild(r)})}
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+async function bioSetup(){if(!window.PublicKeyCredential||!navigator.credentials)throw 0;
+ const c=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Control de gastos 2026'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'usuario',displayName:'Usuario'},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000}});
+ return b64(c.rawId)}
+async function bioUnlock(){try{const id=Uint8Array.from(atob(LK.bio),c=>c.charCodeAt(0));
+ await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id}],userVerification:'required',timeout:60000}});return true}catch(e){return false}}
+function norm(c){return c.toUpperCase().replace(/[^A-Z0-9]/g,'')}
+function mkCode(){const A='ABCDEFGHJKMNPQRSTUVWXYZ23456789',u=crypto.getRandomValues(new Uint8Array(12));let s='';u.forEach((b,i)=>{s+=A[b%A.length];if(i%4===3&&i<11)s+='-'});return s}
+function showCode(code){return new Promise(res=>{const b=overlay('Tu código de recuperación','Guárdalo en un lugar seguro (papel o gestor de contraseñas). No se volverá a mostrar.');
+ const c=el('div',code);c.style.cssText='font:bold 22px monospace;letter-spacing:2px;margin:10px 0;user-select:all';b.appendChild(c);
+ const r=el('div');r.style.cssText='display:flex;gap:8px;justify-content:center;flex-wrap:wrap';
+ const cp=el('button','Copiar');cp.type='button';cp.onclick=async()=>{try{await navigator.clipboard.writeText(code);cp.textContent='Copiado'}catch(e){cp.textContent='Anótalo a mano'}};
+ const ok=el('button','Ya lo guardé');ok.type='button';ok.onclick=()=>{$('lock').classList.remove('on');res()};r.append(cp,ok);b.appendChild(r)})}
+async function genRec(){const code=mkCode(),rs=rnd();LK.rec=await H(norm(code),rs);LK.recSalt=rs;saveLK();await showCode(code)}
+function askText(title,msg){return new Promise(res=>{const b=overlay(title,msg),i=el('input');i.type='text';i.maxLength=14;i.autocomplete='off';i.placeholder='XXXX-XXXX-XXXX';i.style.cssText='font:bold 20px monospace;text-align:center;width:100%;text-transform:uppercase';b.appendChild(i);
+ const r=el('div');r.style.cssText='display:flex;gap:8px;justify-content:center;margin-top:10px';const done=v=>{$('lock').classList.remove('on');res(v)};
+ const ok=el('button','Aceptar');ok.type='button';ok.onclick=()=>done(i.value);const no=el('button','Cancelar');no.type='button';no.onclick=()=>done(null);
+ i.onkeydown=e=>{if(e.key==='Enter')done(i.value)};r.append(ok,no);b.appendChild(r);setTimeout(()=>i.focus(),50)})}
+function choose(title,opts){return new Promise(res=>{const b=overlay(title,''),r=el('div');r.style.cssText='display:flex;gap:8px;flex-direction:column';
+ opts.forEach(([t,v])=>{const x=el('button',t);x.type='button';x.onclick=()=>{$('lock').classList.remove('on');res(v)};r.appendChild(x)});b.appendChild(r)})}
+function wipeAll(){try{['cg2026','cg2026lock','cg2026try'].forEach(k=>localStorage.removeItem(k))}catch(e){}location.reload()}
+async function verify(cancel){let msg='';for(;;){
+ const t=await ask({title:'Ingresa tu PIN',len:LK.len,cancel,bio:!!LK.bio,forgot:1,msg});
+ if(t===null)return false;
+ if(t==='BIO'){if(await bioUnlock()){TR={n:0,until:0};saveTR();return true}msg='No se pudo verificar la huella';continue}
+ if(t==='FORGOT'){
+  const o=await choose('Olvidé mi PIN',(LK.rec?[['Usar mi código de recuperación','REC']]:[]).concat([['Borrar todos los datos y empezar de nuevo','WIPE'],['Volver',null]]));
+  if(o==='REC'){const c=await askText('Código de recuperación','');if(c===null)continue;
+   const w2=Math.ceil((TR.until-Date.now())/1000);if(w2>0){msg='Demasiados intentos. Espera '+w2+' segundos';continue}
+   if(await H(norm(c),LK.recSalt)===LK.rec){TR={n:0,until:0};saveTR();if(await setPin())return true;msg='No se cambió el PIN';continue}
+   TR.n++;if(TR.n%5===0)TR.until=Date.now()+30000*Math.pow(2,TR.n/5-1);saveTR();msg='Código incorrecto';continue}
+  if(o==='WIPE'&&confirm('Se BORRARÁN todos los movimientos y el PIN de este dispositivo. ¿Seguro?')){wipeAll();return false}
+  continue}
+ const w=Math.ceil((TR.until-Date.now())/1000);if(w>0){msg='Demasiados intentos. Espera '+w+' segundos';continue}
+ if(await H(t,LK.salt)===LK.hash){TR={n:0,until:0};saveTR();return true}
+ TR.n++;if(TR.n%5===0)TR.until=Date.now()+30000*Math.pow(2,TR.n/5-1);saveTR();msg='PIN incorrecto'}}
+async function setPin(){const len=await askLen();if(!len)return false;
+ const p1=await ask({title:'Crea tu PIN de '+len+' dígitos',len,cancel:1});if(!p1)return false;
+ const p2=await ask({title:'Repite el PIN',len,cancel:1});if(!p2)return false;
+ if(p1!==p2){alert('Los PIN no coinciden. Intenta de nuevo.');return false}
+ const salt=rnd();LK={len,salt,hash:await H(p1,salt),bio:(LK&&LK.bio)||null,rec:(LK&&LK.rec)||null,recSalt:(LK&&LK.recSalt)||null};saveLK();if(!LK.rec)await genRec();return true}
+function lockView(on){document.querySelector('.w').style.visibility=on?'hidden':'visible'}
+async function lockNow(){if(!LK)return;lockView(true);document.querySelectorAll('#lm,#sg').forEach(x=>{if(x.id==='sg')x.hidden=true});await verify(false);lockView(false);render()}
+function secUI(){const s=$('sg');s.textContent='';s.appendChild(el('h2','Seguridad'));
+ const btn=(t,f)=>{const x=el('button',t);x.type='button';x.style.marginRight='8px';x.style.marginTop='6px';x.onclick=async()=>{try{await f()}catch(e){alert('No se pudo completar la acción.')}secUI()};s.appendChild(x)};
+ if(!LK){s.appendChild(el('p','Protege tus datos con un PIN de 4 o 6 dígitos. Se pedirá al abrir la página.'));btn('Crear PIN',setPin)}
+ else{s.appendChild(el('p','PIN activo ('+LK.len+' dígitos).'+(LK.bio?' Huella/biometría activada.':'')+(LK.rec?' Código de recuperación creado.':' Aún no tienes código de recuperación.')));
+  btn('Bloquear ahora',lockNow);
+  btn('Cambiar PIN',async()=>{if(await verify(true))await setPin()});
+  btn(LK.rec?'Nuevo código de recuperación':'Crear código de recuperación',async()=>{if(await verify(true))await genRec()});
+  btn('Quitar PIN',async()=>{if(await verify(true)){LK=null;saveLK()}});
+  if(LK.bio)btn('Quitar huella',async()=>{LK.bio=null;saveLK()});
+  else btn('Activar huella / biometría',async()=>{try{LK.bio=await bioSetup();saveLK();alert('Huella activada. El PIN sigue siendo tu respaldo.')}catch(e){alert('Este navegador o dispositivo no permite la huella aquí (por ejemplo, desde esta página o desde un archivo abierto en el computador). Usa el PIN.')}})}
+ const n=el('p','El PIN bloquea la pantalla de esta aplicación en este dispositivo. No cifra los datos guardados en el navegador. Si olvidas el PIN, solo el código de recuperación te deja entrar sin borrar tus datos.');n.style.cssText='font-size:12px;color:var(--mu)';s.appendChild(n)}
+function startLock(){
+ $('sb').onclick=()=>{const s=$('sg');s.hidden=!s.hidden;if(!s.hidden)secUI()};
+ let hid=0;document.addEventListener('visibilitychange',()=>{if(document.hidden)hid=Date.now();else if(LK&&hid&&Date.now()-hid>60000&&!$('lock').classList.contains('on'))lockNow()});
+ if(!LK){render();return}
+ lockView(true);verify(false).then(()=>{lockView(false);render()})}
+
+// init
+function est(){$('est').textContent=navigator.onLine?'En línea':'Sin conexión (todo sigue funcionando)'}
+addEventListener('online',est);addEventListener('offline',est);est();
+const sm=$('mes');[['auto','Automático']].concat(MES.map((n,i)=>[i,n])).forEach(([v,n])=>{const o=el('option',n);o.value=v;sm.appendChild(o)});
+sm.value=S.sel;sm.onchange=()=>{S.sel=sm.value;save();render()};
+$('ini').value=S.ini;$('ini').onchange=()=>{S.ini=+$('ini').value||0;save();render()};
+document.querySelectorAll('input[name=t]').forEach(r=>r.onchange=setCats);setCats();
+$('fe').value=iso(hoy.getFullYear()===2026?hoy:new Date(2026,0,1));
+$('ad').onclick=()=>{const t=document.querySelector('input[name=t]:checked').value,f=$('fe').value,mo=parseFloat($('mo').value);
+ if(!f||!(mo>0)){alert('Escribe una fecha y un monto mayor a cero.');return}
+ S.mov.push({id:Date.now()+Math.random(),t,f,c:$('ca').value,d:$('de').value.trim(),m:mo});
+ $('de').value='';$('mo').value='';save();render()};
+$('nt').onclick=async()=>{try{const p=await Notification.requestPermission();$('nt').textContent=p==='granted'?'Avisos activados':'Avisos no permitidos'}catch(e){$('nt').textContent='Tu navegador no permite avisos'}};
+const clave=hoy.getFullYear()+'-'+hoy.getMonth();
+if(S.visto!==null&&S.visto!==clave){try{if(Notification.permission==='granted')new Notification('Control de gastos 2026',{body:'Comenzó '+MES[hoy.getMonth()]+'. ¡Registra tus ingresos y gastos!'})}catch(e){}}
+startLock();S.visto=clave;save();
+(async()=>{try{let dl=null,off=false;try{dl=await claude.use("downloads")}catch(e){}
+ if(!dl){if(typeof claude==='undefined'){dl={save:async({filename,data})=>{const bl=data instanceof Blob?new Blob([data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}):new Blob([data],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}};off=true}else return}
+ const b=$('of');b.hidden=off;$('ex').hidden=false;$('ex').onclick=()=>{exportar(dl).catch(()=>{})};
+ b.onclick=async()=>{try{const tag='<script>try{if(!localStorage.getItem("cg2026"))localStorage.setItem("cg2026",'+JSON.stringify(JSON.stringify(LK?{mov:[],ini:0,sel:'auto',visto:null}:S)).replace(/</g,'\\u003c')+');'+(LK?'if(!localStorage.getItem("cg2026lock"))localStorage.setItem("cg2026lock",'+JSON.stringify(JSON.stringify(Object.assign({},LK,{bio:null}))).replace(/</g,'\\u003c')+');':'')+'}catch(e){}<\/script>\n';
+  const html=SRC.replace('<script>\nconst SRC=',tag+'<script>\nconst SRC=');
+  await dl.save({filename:'Control de gastos 2026.html',data:html});}catch(e){}}}catch(e){}})();
+if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
